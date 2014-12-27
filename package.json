@@ -1,0 +1,24 @@
+{
+  "name": "zoe-express",
+  "version": "0.1.0",
+  "description": "Reads in models from yaml file and spits Restful backend",
+  "main": "zoe-express.js",
+  "dependencies": {
+    "fs-extra": "^0.13.0",
+    "inflection": "^1.5.3",
+    "js-yaml": "^3.2.4",
+    "mongoose": "^3.8.21",
+    "node-getopt": "^0.2.3",
+    "replace": "^0.3.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Dinni Bartholomew",
+  "license": "ISC",
+  "preferGlobal": "true",
+  "bin": {
+    "zoe-express": "./zoe-express.js"
+  }
+}

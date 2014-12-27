@@ -1,0 +1,14 @@
+models:
+  - name: Test
+    member:
+      name: String
+      updated_at:
+        type: Date
+        default: Date.now
+
+  - name: Test2
+    member:
+      name: String
+      updated_at:
+        type: Date
+        default: Date.now
