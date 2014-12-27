@@ -17,21 +17,26 @@ node install -g
 zoe-express uses a loosely based yaml file that is based on a mongoose schema declaration; for example the following schemas:
 
   - <EXPRESSROOT>/models/Test.js
+```lang
 	var mongoose = require('mongoose');
 	var TestSchema =  new mongoose.Schema(
 	{ name : String , updated_at :{ type : Date , default : Date.now }});
 	
 	module.exports = mongoose.model('Test', TestSchema);
+```
 
   - <EXPRESSROOT>/models/Test2.js
+```lang
 	var mongoose = require('mongoose');
 	var Test2Schema =  new mongoose.Schema(
 	{ name : String , updated_at :{ type : Date , default : Date.now }});
 
 	module.exports = mongoose.model('Test2', Test2Schema);
-
+```
 Can be represented in the yaml description file as:
 <YAML Description File AKA test.yml in this case>
+
+```lang
 models:
   - name: Test
     member:
@@ -46,7 +51,7 @@ models:
       updated_at:
         type: Date
         default: Date.now
-
+```
 Running  zoe-express, assuming the file is named test.yml
 
 	$ zoe-express --yaml test.yaml <APPNAME>
