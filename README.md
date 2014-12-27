@@ -10,7 +10,8 @@ The idea behind zoe-express is that code generated via metadata can be:
   3. quicker to deploy; as the backend api is generated (:
 
 ## Installation
-node install -g   
+
+	$ sudo npm install -g git://github.com/chubbz327/zoe-express.git
 
 
 ## Usage
