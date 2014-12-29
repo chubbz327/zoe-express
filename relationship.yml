@@ -1,0 +1,24 @@
+models:
+  - name: Person
+    member:
+      _id: Number
+      name: String
+      age: Number
+      stories:
+        - type: Schema.Types.ObjectId
+          ref: "'Story'"
+    has_many_members:
+      - stories
+
+  - name: Story
+    member:
+      _creator:
+        type: Number
+        ref: "'Person'"
+      fans:
+        - type: Number
+          ref: "'Person'"
+    has_many_members:
+      - fans
+    belong_to_members:
+      - _creator
