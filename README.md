@@ -4,7 +4,7 @@
 zoe-express was written to generate RESTful APi from a yaml file;  using mongo, node.js, and express as the implementation.
 
 The idea behind zoe-express is that code generated via metadata can be:
-  1. quickly modified globaly
+  1. quickly modified globally
   2. easier to trouble shoot; as all models and controllers are generated
      from the same template
   3. quicker to deploy; as the backend api is generated (:
@@ -22,7 +22,7 @@ zoe-express uses a loosely based yaml file that is based on a mongoose schema de
 	var mongoose = require('mongoose');
 	var TestSchema =  new mongoose.Schema(
 	{ name : String , updated_at :{ type : Date , default : Date.now }});
-	
+
 	module.exports = mongoose.model('Test', TestSchema);
 ```
 
@@ -59,17 +59,17 @@ Running  zoe-express, assuming the file is named test.yml
 	$ cd <APPNAME>
 	$ npm install
 	$ mongod
-	$ DEBUG=<APPNAME> ./bin/www
+	$ nodemon
 	$ # #! AKA Bang done!!!!
 Will generate
   1. the the model files mentioned above
-  2. add the require and use statements to app.js 
+  2. add the require and use statements to app.js
   3. create the route js scripts for RESTful CRUD
 
- 
+
 ## Contributing
 
-Please feel free to contribute; you.branteaser("cockout rockout with");
+Please feel free to contribute;
 
 ### Tools
 
