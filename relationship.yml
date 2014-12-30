@@ -1,24 +1,28 @@
 models:
   - name: Person
     member:
-      _id: Number
       name: String
       age: Number
       stories:
         - type: Schema.Types.ObjectId
           ref: "'Story'"
     has_many_members:
-      - stories
+      - stories:
+          Story: "'_creator'"
+
 
   - name: Story
     member:
+      title: String
       _creator:
-        type: Number
+        type: Schema.Types.ObjectId
         ref: "'Person'"
       fans:
         - type: Number
           ref: "'Person'"
     has_many_members:
-      - fans
-    belong_to_members:
-      - _creator
+      - fans:                  #uni directional relationship
+          Person: false
+    belongs_to_members:
+      - _creator:
+          Person: "'stories'"

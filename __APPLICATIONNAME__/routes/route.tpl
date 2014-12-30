@@ -6,7 +6,7 @@ var __MODELNAME__ = require('../models/__MODELNAME__.js');
 
 /* GET /__MODELNAMELOWERPLURAL__ listing. */
 router.get('/', function(req, res, next) {
-  __MODELNAME__.find(function (err, __MODELNAMELOWERPLURAL__) {
+  __MODELNAME__.find().populate(populate_members).exec(function (err, __MODELNAMELOWERPLURAL__) {
     if (err) return next(err);
     res.json(__MODELNAMELOWERPLURAL__);
   });
