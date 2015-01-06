@@ -18,7 +18,12 @@ router.get('/', function(req, res, next) {
 router.post('/', function(req, res, next) {
   __MODELNAME__.create(req.body, function (err, post) {
     if (err) return next(err);
+    __MODELNAME__.updateRelationsOnCreate(post, function(err){
+      console.log(post);
+    });
+
     res.json(post);
+
   });
 });
 

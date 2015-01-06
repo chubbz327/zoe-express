@@ -1,28 +1,43 @@
 models:
   - name: Person
-    member:
+    members:
       name: String
       age: Number
       stories:
         - type: Schema.Types.ObjectId
           ref: "'Story'"
-    has_many_members:
-      - stories:
-          Story: "'_creator'"
+      storiesLiked:
+        - type: Schema.Types.ObjectId
+          ref: "'Story'"
+    relationships:
+      - type: hasMany
+        model: Story
+        through: stories
+        relationMember: _creator
+      - type: hasAndBelongsToMany
+        model: Story
+        through: storiesLiked
+        dependent: delete
+        relationMember: fans
 
 
   - name: Story
-    member:
+    members:
       title: String
       _creator:
         type: Schema.Types.ObjectId
         ref: "'Person'"
       fans:
-        - type: Number
+        - type: Schema.Types.ObjectId
           ref: "'Person'"
-    has_many_members:
-      - fans:                  #uni directional relationship
-          Person: false
-    belongs_to_members:
-      - _creator:
-          Person: "'stories'"
+    relationships:
+      - type: hasAndBelongsToMany
+        model: Person
+        through: fans
+        dependent: delete
+        relationMember: storiesLiked
+      - type: belongsTo
+        model: Person
+        through: _creator
+        dependent: nullify
+        relationMember: stories

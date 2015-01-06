@@ -36,3 +36,9 @@ Story.find().populate('_creator').exec(function(err, stories){
   if(err) console.log(err);
   console.log(stories);
 });
+
+
+Story.find().populate('').exec(function(err, stories){
+  if(err) console.log(err);
+  console.log(stories);
+});
