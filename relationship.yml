@@ -39,6 +39,5 @@ models:
       - type: belongsTo
         model: Person
         through: _creator
-        onDelete: nullify
         relationMember: stories
         onDelete: delete
