@@ -23,6 +23,34 @@ __SCHEMANAME__.statics.findByIdAndPopulate = function(id, callBack){
 }
 
 
+__SCHEMANAME__.statics.updateRelationsPreDelete = function(obj,  callBack){
+  myModel.findById(obj._id, function(err, oldObj){
+    if (err) return callBack(err);
+    console.log(oldObj + '\n' + obj);
+    _RELATIONSHIPS.forEach( function(e, i, array ) {
+      var relation = _RELATIONSHIPS[i];
+      var through  = relation.through;
+      var model = mongoose.model(relation.model);
+
+      var relationMember = relation.relationMember;
+      if (( relation.onDelete )&& ( relation.onDelete.match(/delete/i) ) ) {
+        //remove relationships
+        console.log('Deleting Relation', relation);
+        myModel.deleteRelation(oldObj, relation, function(err){
+          if (err) callBack(err);
+        });
+      }else {
+        //remove relationship
+        myModel.removeRelationship(oldObj, relation, function(err){
+          if (err) callBack(err);
+        });
+      }
+    });
+    return callBack(null, obj);
+  });
+
+}
+
 __SCHEMANAME__.statics.updateRelationsPreUpdate = function(obj,  callBack){
   //console.log(obj);
 
@@ -67,6 +95,32 @@ __SCHEMANAME__.statics.updateRelationsPreUpdate = function(obj,  callBack){
     });
     return callBack(null, obj);
   });
+
+}
+
+
+__SCHEMANAME__.statics.deleteRelation = function( obj, relation, callBack) {
+  var model = mongoose.model(relation.model);
+  var through  = relation.through;
+  var relationMember = relation.relationMember;
+
+  if ( obj[through].constructor === Array){
+    //hasMany or hasAndBelongsToMany
+    var relIds = obj[through];
+    relIds.forEach(function(e, i, a){
+      var id =  e;
+      model.findByIdAndRemove(id, function(err, instance){
+        if (err) callBack(err);
+      });
+    });
+
+  }else {
+    //belongsTo
+    model.findByIdAndRemove(obj[through], function(err, instance){
+      if (err) callBack(err);
+      console.log("Removed ", instance);
+    });
+  }
 
 }
 

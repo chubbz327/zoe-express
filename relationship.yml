@@ -14,10 +14,11 @@ models:
         model: Story
         through: stories
         relationMember: _creator
+        onDelete: delete
+
       - type: hasAndBelongsToMany
         model: Story
         through: storiesLiked
-        dependent: delete
         relationMember: fans
 
 
@@ -34,10 +35,10 @@ models:
       - type: hasAndBelongsToMany
         model: Person
         through: fans
-        dependent: delete
         relationMember: storiesLiked
       - type: belongsTo
         model: Person
         through: _creator
-        dependent: nullify
+        onDelete: nullify
         relationMember: stories
+        onDelete: delete
