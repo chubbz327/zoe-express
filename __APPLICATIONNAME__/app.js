@@ -6,6 +6,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var multer = require('multer');
 var routes = require('./routes/index');
+var _ = require('underscore');
 //var users = require('./routes/users');
 
 var app = express();
