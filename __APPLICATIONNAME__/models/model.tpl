@@ -23,70 +23,80 @@ __SCHEMANAME__.statics.findByIdAndPopulate = function(id, callBack){
 }
 
 
-__SCHEMANAME__.statics.updateRelationsPreDelete = function(obj,  callBack){
-  myModel.findById(obj._id, function(err, oldObj){
+__SCHEMANAME__.statics.updateRelationsPreDelete = function(id,  callBack){
+  myModel.findById(id, function(err, oldObj){
     if (err) return callBack(err);
-    console.log(oldObj + '\n' + obj);
+
     _RELATIONSHIPS.forEach( function(e, i, array ) {
       var relation = _RELATIONSHIPS[i];
       var through  = relation.through;
       var model = mongoose.model(relation.model);
 
       var relationMember = relation.relationMember;
-      if (( relation.onDelete )&& ( relation.onDelete.match(/delete/i) ) ) {
+      if ( relation.onDelete   ) {
         //remove relationships
         console.log('Deleting Relation', relation);
         myModel.deleteRelation(oldObj, relation, function(err){
-          if (err) callBack(err);
+          if (err) return callBack(err);
         });
       }else {
         //remove relationship
         myModel.removeRelationship(oldObj, relation, function(err){
-          if (err) callBack(err);
+          if (err) return callBack(err);
         });
       }
     });
-    return callBack(null, obj);
+    return callBack(null, {});
   });
 
 }
 
 __SCHEMANAME__.statics.updateRelationsPreUpdate = function(obj,  callBack){
-  //console.log(obj);
 
-  //console.log('ID ' + obj._id);
+  /*
+   * Find previous object prior to saving new object
+   */
   myModel.findById(obj._id, function(err, oldObj){
     if (err) return callBack(err);
-  console.log(oldObj + '\n' + obj);
+
     _RELATIONSHIPS.forEach( function(e, i, array ) {
       var relation = _RELATIONSHIPS[i];
       var through  = relation.through;
       var model = mongoose.model(relation.model);
 
       var relationMember = relation.relationMember;
-      if ( obj[through].constructor === Array) {
+      /*
+       * Check if member is an array if so it is a hasMany or hasAndBelongsToMany relationship
+       */
+
+      if ( obj && obj[through] && obj[through].constructor && obj[through].constructor === Array) {
+
+        /*
+         * Check if there are entries in the saved object that do not exist in the new
+         */
+
         if  ( _.difference(oldObj[through], obj[through]).length){
+
           //remove relationships
-          myModel.removeRelationship(oldObj, relation, function(err){
-            if (err) callBack(err);
-          });
-        }
-        if (  _.difference( obj[through], oldObj[through]).length ){
-          //set relationships
-          myModel.setRelationship(obj, relation, function(err){
-            if (err) callBack(err);
+          myModel.removeRelationship(oldObj, relation, function(err, newObj){
+            if (err) return callBack(err);
           });
         }
 
       }else {
-        if ( obj[through] !== oldObj[through]  ) {
+      /*
+       * Belongs to member
+       */
+        if ( obj && obj[through] != oldObj[through]  ) {
 
           //remove relationship
           myModel.removeRelationship(oldObj, relation, function(err){
-            if (err) callBack(err);
-            myModel.setRelationship(obj, relation, function(err){
-              if (err) callBack(err);
-            });
+
+            if (err) {
+              console.log('updateRelationsOnCreate', err);
+              return callBack(err);
+            }
+
           });
 
         }
@@ -103,25 +113,30 @@ __SCHEMANAME__.statics.deleteRelation = function( obj, relation, callBack) {
   var model = mongoose.model(relation.model);
   var through  = relation.through;
   var relationMember = relation.relationMember;
+  console.log('DELLETING OBJECT', obj);
+  if (! obj) return callBack(null, obj);
 
-  if ( obj[through].constructor === Array){
+  if ( obj[through] && obj[through].constructor && obj[through].constructor === Array) {
     //hasMany or hasAndBelongsToMany
     var relIds = obj[through];
     relIds.forEach(function(e, i, a){
+      console.log('DELETE RELATIONSHIPS', e, i, a)
       var id =  e;
       model.findByIdAndRemove(id, function(err, instance){
-        if (err) callBack(err);
+        if (err) return callBack(err);
+
+
       });
     });
 
   }else {
     //belongsTo
     model.findByIdAndRemove(obj[through], function(err, instance){
-      if (err) callBack(err);
+      if (err) return callBack(err);
       console.log("Removed ", instance);
     });
   }
-
+  return callBack(null, {});
 }
 
 
@@ -129,14 +144,16 @@ __SCHEMANAME__.statics.removeRelationship = function( obj, relation, callBack) {
   var model = mongoose.model(relation.model);
   var through  = relation.through;
   var relationMember = relation.relationMember;
+  if (! obj) return callBack(null, {});
 
-  if ( obj[through].constructor === Array){
+  if ( obj[through] && obj[through].constructor && obj[through].constructor === Array) {
     //hasMany or hasAndBelongsToMany
     var relIds = obj[through];
     relIds.forEach(function(e, i, a){
       var id =  e;
       model.findById(id, function(err, instance){
-        if (err) callBack(err);
+        if (err) return callBack(err);
+        if (! instance) return callBack(null, obj);
 
         if (instance[relationMember].constructor === Array ){
 
@@ -153,28 +170,47 @@ __SCHEMANAME__.statics.removeRelationship = function( obj, relation, callBack) {
           //hasMany
           instance[relationMember] = null;
         }
+        if (! instance._id || ! model ) {return callBack(null, obj);}
+        instance.save(instance, function(err, updated ){
+          if (err)  {
+            console.log("MYERROR",err, "INSTANCE", instance);
+            return callBack(err, obj);
+          }
 
-        instance.save(function(err, updated){
-          if (err) callBack(err);
-
-          console.log('updated Model' + relation.model + ' ' +  updated._id);
+          return callBack(null, obj);
         });
-      })
+      });
     });
 
+    return callBack(null, obj);
   }else {
     //belongsTo
     model.findById(obj[through], function(err, instance){
-      if (err) callBack(err);
+      if (err) return callBack(err);
+
+      //value set to null, or not populated
+      if (! instance ) return callBack(null, obj);
 
 
       instance[relationMember] = _.without(instance[relationMember], obj._id);
-      instance.save(function(err, updated){
-        if (err) callBack(err);
-        console.log('updated Model' + relation.model + ' ' +  updated._id);
+      var list = instance[relationMember];
+      var newList =[];
+      list.forEach(function(e, i, a){
+        if (e.toString() !== obj._id.toString()) {
+          newList.push(e);
+        }
+      });
 
+      instance[relationMember] = newList;
+
+      instance.save(function(err, updated){
+        if (err) return callBack(err);
+        console.log('updated Model ' + relation.model + ' ' +  updated._id +
+         ' Removed ' + obj._id  + 'from  ' );
+        return callBack(err);
       });
     });
+    return callBack(null, obj);
   }
 
 }
@@ -185,30 +221,50 @@ __SCHEMANAME__.statics.setRelationship = function( obj, relation, callBack) {
   var through  = relation.through;
   var relationMember = relation.relationMember;
 
-  if ( obj[through].constructor === Array){
+  if (! obj || !obj._id) return callBack(null, obj);
+
+  if ( obj[through] && obj[through].constructor && obj[through].constructor === Array) {
     //hasMany or hasAndBelongsToMany
     var relIds = obj[through];
     relIds.forEach(function(e, i, a){
       var id =  e;
       model.findById(id, function(err, instance){
-        if (err) callBack(err);
-        instance[relationMember].push(obj._id);
-        instance.save(function(err, updated){
-          if (err) callBack(err);
+        if (err) return callBack(err);
+        if (! instance ) {
+          console.log('setRelationship: unable to find ' + relation.model + ' with ID ' + id);
+          return callBack(null, obj);
+        }
 
-          console.log('updated Model' + relation.model + ' ' +  updated._id);
+        if ( instance[relationMember] && instance[relationMember].constructor === Array){
+          //hasAndBelongstoMany
+          instance[relationMember].push(obj._id);
+        } else {
+        //hasMany
+          instance[relationMember] = obj._id
+        }
+        instance.save(function(err, updated){
+          if (err) return callBack(err);
+
+          console.log('setRelationship: updated Model' + relation.model + ' ' +
+                        updated._id + ' adding _id ' + obj._id + ' to ' + relationMember, updated);
+          return callBack(err);
         });
       })
     });
 
   }else {
     //belongsTo
+
     model.findById(obj[through], function(err, instance){
-      if (err) callBack(err);
+      //console.log('Set Relationship', instance, obj);
+      if (err) return callBack(err);
+      if (! instance ) return(null, obj);
       instance[relationMember].push(obj._id);
       instance.save(function(err, updated){
-        if (err) callBack(err);
-        console.log('updated Model' + relation.model + ' ' +  updated._id);
+        if (err) return callBack(err);
+        console.log('setRelationship: updated Model' + relation.model + ' ' +
+          updated._id + ' setting '  + relationMember + ' to ' + obj._id);
+        return callBack(err);
 
       });
     });
@@ -222,10 +278,8 @@ __SCHEMANAME__.statics.updateRelationsOnCreate = function( obj, callBack){
     var relation = _RELATIONSHIPS[i];
 
     myModel.setRelationship(obj, relation, function(err){
-      if (err) callBack(err);
+      if (err) return callBack(err);
     });
-
-    //console.log('returning')
 
   });
   return callBack(null, obj);

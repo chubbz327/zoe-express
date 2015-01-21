@@ -4,6 +4,7 @@
   "description": "Reads in models from yaml file and spits Restful backend",
   "main": "zoe-express.js",
   "dependencies": {
+    "autofixture": "^0.1.0",
     "extend": "^2.0.0",
     "fs-extra": "^0.13.0",
     "inflection": "^1.5.3",
@@ -11,7 +12,8 @@
     "mongoose": "^3.8.21",
     "node-getopt": "^0.2.3",
     "replace": "^0.3.0",
-    "underscore": "^1.7.0"
+    "underscore": "^1.7.0",
+    "winston": "^0.8.3"
   },
   "devDependencies": {},
   "scripts": {

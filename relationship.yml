@@ -40,4 +40,3 @@ models:
         model: Person
         through: _creator
         relationMember: stories
-        onDelete: delete

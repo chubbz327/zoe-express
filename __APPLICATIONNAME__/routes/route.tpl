@@ -19,7 +19,6 @@ router.post('/', function(req, res, next) {
   __MODELNAME__.create(req.body, function (err, post) {
     if (err) return next(err);
     __MODELNAME__.updateRelationsOnCreate(post, function(err){
-      console.log(post);
     });
 
     res.json(post);
@@ -42,16 +41,20 @@ router.put('/:id', function(req, res, next) {
     req.body._id = req.params.id;
   __MODELNAME__.updateRelationsPreUpdate(req.body, function(err, obj){
     if (err) return next(err);
-    __MODELNAME__.findByIdAndUpdate(req.params.id, req.body, function (err, post) {
+    __MODELNAME__.findByIdAndUpdate(req.params.id, obj, function (err, post) {
       if (err) return next(err);
+
+      __MODELNAME__.updateRelationsOnCreate(post, function(err){
         res.json(post);
+      });
+
       });
     });
 });
 
 /* DELETE /__MODELNAMELOWERPLURAL__/:id */
 router.delete('/:id', function(req, res, next) {
-  __MODELNAME__.updateRelationsPreDelete(req.body, function(err, obj){
+  __MODELNAME__.updateRelationsPreDelete(req.params.id, function(err, obj){
     __MODELNAME__.findByIdAndRemove(req.params.id, req.body, function (err, post) {
       if (err) return next(err);
       res.json(post);
