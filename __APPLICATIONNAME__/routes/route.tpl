@@ -54,6 +54,7 @@ router.put('/:id', function(req, res, next) {
 
 /* DELETE /__MODELNAMELOWERPLURAL__/:id */
 router.delete('/:id', function(req, res, next) {
+  
   __MODELNAME__.updateRelationsPreDelete(req.params.id, function(err, obj){
     __MODELNAME__.findByIdAndRemove(req.params.id, req.body, function (err, post) {
       if (err) return next(err);
