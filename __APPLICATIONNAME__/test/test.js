@@ -403,3 +403,24 @@ describe('DELETE  model by ID  onDelete remove child', function() {
     });
   });
 });
+
+
+
+
+describe('Delete model by ID', function() {
+  Object.keys(testModels).forEach(function(e, i, a) {
+    Object.keys(testModels[e]).forEach(function(ee, ii, aa) {
+      var modelName = e;
+      var model = testModels[e][ee];
+      var url = "/" + inflection.pluralize(e.toLowerCase()) + '/' + model._id;
+      it(util.format('It should delete model using %s using Id %s', e, model._id), function(done) {
+        request(app)
+        .delete(url)
+        .expect(function(res) {
+        .expect(200, done);
+      });
+    });
+
+  });
+
+});
