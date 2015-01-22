@@ -411,24 +411,36 @@ describe('DELETE  model by ID  onDelete remove child', function() {
 /*
  * Remove test data
  */
-
+// 
 // describe('Delete model by ID', function() {
 //   Object.keys(testModels).forEach(function(e, i, a) {
-//     Object.keys(testModels[e]).forEach(function(ee, ii, aa) {
-//       var modelName = e;
-//       var model = testModels[e][ee];
-//       var url = "/" + inflection.pluralize(e.toLowerCase()) + '/' + model._id;
-//       it(util.format('It should delete model using %s using Id %s', e, model._id), function(done) {
-//         try {
-//           request(app)
-//           .delete(url)
-//           .expect(200, done);
-//         } catch (e){
+//     var removeIds = [];
+//     var modelInfo = {
+//       name: e,
+//       url: "/" + inflection.pluralize(e.toLowerCase())
+//     }
+//     it('Should get a list of   ' + e + ' Ids', function(done) {
 //
-//         }
-//       });
+//       request(app)
+//       .get(modelInfo.url)
+//       .set('Accept', 'application/json')
+//       .expect('Content-Type', /json/)
+//       .expect(function(res){
+//         res.body.forEach(function(e, i, a){
+//           removeIds.push(e._id);
+//         });
+//       })
+//       .expect(200, done);
+//
 //     });
 //
+//     it('Should delete ' + e + ' by ID', function (done){
+//       removeIds.forEach(function(e, i, a){
+//         var url = modelInfo.url + '/' +e;
+//         request(app)
+//         .delete(url)
+//         .expect(200, done);
+//       });
+//     });
 //   });
-//
 // });

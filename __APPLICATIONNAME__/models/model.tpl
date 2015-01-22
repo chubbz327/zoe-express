@@ -28,6 +28,8 @@ __SCHEMANAME__.statics.findByIdAndPopulate = function(id, callBack){
 __SCHEMANAME__.statics.updateRelationsPreDelete = function(id,  callBack){
   myModel.findById(id, function(err, oldObj){
     if (err) return callBack(err);
+    //deleting instance that does not exist
+    if (! oldObj) return callBack(null, null);
 
     _RELATIONSHIPS.forEach( function(e, i, array ) {
       var relation = _RELATIONSHIPS[i];
