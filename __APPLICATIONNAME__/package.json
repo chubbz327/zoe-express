@@ -12,6 +12,7 @@
     "debug": "~2.0.0",
     "ejs": "~0.8.5",
     "express": "~4.9.0",
+    "inflection": "^1.5.3",
     "mongo-relation": "^0.5.4",
     "mongoose": "^3.8.21",
     "morgan": "~1.3.0",
