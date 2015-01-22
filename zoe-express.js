@@ -65,6 +65,4 @@ zoeCopyAndReplace(appName, function (err){
 });
 
 
-//console.info(yaml);
 
-//console.log(getOpt);
