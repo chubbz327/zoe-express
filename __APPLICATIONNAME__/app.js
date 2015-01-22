@@ -65,12 +65,6 @@ module.exports = app;
 
 //Begin zoe-express
 
-3
-4
-5
-6
-7
-8
 var mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/__APPLICATIONNAME__', function(err) {
     if(err) {

@@ -1,4 +1,6 @@
 var _ = require("underscore");
+var util = require('util');
+
 var factory = require('AutoFixture');
 require('./fixtures')(factory);
 var assert = require("assert");
@@ -26,26 +28,10 @@ __SETUPTESTMODELS__
 
 
 
-
-
-
-var getModelInfo = function(e, testModels, callBack) {
-  var url = "/" + inflection.pluralize(e.toLowerCase());
-
-  ;
-  var ret = {
-    name: e,
-    model: testModels,
-    url: url
-  }
-
-  return (null, ret);
-}
-
-
-
+/*
+ * Generate test data; create three instances of each model
+ */
 Object.keys(testModels).forEach(function(e, i, a) {
-  //create 10 instances of each model
   var modelName = e;
   for (j = 0; j <= 2; j++) {
     testModels[modelName]
@@ -61,21 +47,22 @@ describe('CRUD test', function() {
   });
 });
 
-
+/*
+ * Save modelinstances via post
+ */
 describe('POST create models', function() {
   Object.keys(testModels).forEach(function(e, i, a) {
     Object.keys(testModels[e]).forEach(function(ee, ii, aa) {
-      it('It should create model ' + e + ' Id ' + testModels[e][ee]._id, function(done) {
-        var modelName = e;
-        var modelInfo = {
-          name: e,
-          model: testModels[e][ee],
-          url: "/" + inflection.pluralize(e.toLowerCase())
-        }
 
+      var modelName = e;
+      var model = testModels[e][ee];
+      var url = "/" + inflection.pluralize(e.toLowerCase());
+
+      it(util.format("It should create Model %s " +
+        " with Id %s", modelName, model._id), function(done) {
         request(app)
-          .post(modelInfo.url)
-          .send(modelInfo.model)
+          .post(url)
+          .send(model)
           .expect(200, done);
       });
     });
@@ -88,19 +75,15 @@ describe('POST create models', function() {
 describe('Get model by ID', function() {
   Object.keys(testModels).forEach(function(e, i, a) {
     Object.keys(testModels[e]).forEach(function(ee, ii, aa) {
-      it('It should get model using ' + e + ' Id ' + testModels[e][ee]._id, function(done) {
-        var modelName = e;
-        var modelInfo = {
-          name: e,
-          model: testModels[e][ee],
-          url: "/" + inflection.pluralize(e.toLowerCase()) + '/' + testModels[e][ee]._id
-        }
-
+      var modelName = e;
+      var model = testModels[e][ee];
+      var url = "/" + inflection.pluralize(e.toLowerCase()) + '/' + model._id;
+      it(util.format('It should get model using %s using Id %s', e, model._id), function(done) {
         request(app)
-          .get(modelInfo.url)
+          .get(url)
           .expect(function(res) {
-            if (res.body._id !== modelInfo.model._id.toString()) {
-              throw new Error("Could not retrieve model " + modelName + " " + modelInfo.model._id);
+            if (res.body._id !== model._id.toString()) {
+              throw new Error(util.format("Could not retrieve model %s with Id %s ", modelName, model._id));
             }
           })
           .expect(200, done);
@@ -111,52 +94,53 @@ describe('Get model by ID', function() {
 
 });
 
+/*
+ * Update each model; if relationships exist; populate the members
+ */
+
 describe('PUT update models', function() {
   Object.keys(testModels).forEach(function(e, i, a) {
     Object.keys(testModels[e]).forEach(function(ee, ii, aa) {
-      it('It should update model ' + e + ' Id ' + testModels[e][ee]._id, function(done) {
-        var modelName = e;
-        var modelInfo = {
-          name: e,
-          model: testModels[e][ee],
-          url: "/" + inflection.pluralize(e.toLowerCase()) + '/' + testModels[e][ee]._id
-        }
+      var modelName = e;
+      var model =  testModels[e][ee];
+      var url = "/" + inflection.pluralize(e.toLowerCase()) + '/' + model._id
+
+      it(util.format('It should update model %s with Id %s', modelName, model._id), function(done) {
+
         if (testModelRelationships[modelName]) {
           testModelRelationships[modelName].forEach(function(a, b, c) {
             var relationship = a;
+            var relatedModel = testModels[relationship.model][ii];
+
             if (relationship.type === 'hasMany') {
-              modelInfo.model[relationship.through] = [testModels[relationship.model][ii]._id];
+              model[relationship.through] = [relatedModel._id];
             } else if (relationship.type === 'hasAndBelongsToMany') {
-              modelInfo.model[relationship.through] = [testModels[relationship.model][ii]._id];
+              model[relationship.through] = [relatedModel._id];
             } else if (relationship.type === 'belongsTo') {
-              var index = 2;
-              modelInfo.model[relationship.through] = testModels[relationship.model][ii]._id;
+              model[relationship.through] = relatedModel._id;
             }
           });
         }
-        //console.log('PUT UPDATE', modelInfo.model);
+
         request(app)
-          .put(modelInfo.url)
-          .send(modelInfo.model)
+          .put(url)
+          .send(model)
           .expect(function(res) {
             //Check relationships Persisted
             if (testModelRelationships[modelName]) {
               testModelRelationships[modelName].forEach(function(a, b, c) {
                 var relationship = a;
                 if (relationship.type === 'hasMany' || relationship.type === 'hasAndBelongsToMany') {
-                  if (modelInfo.model[relationship.through][0].toString() != res.body[relationship.through]) {
-                    throw new Error("Relationship update failed for " + modelName + " " +
-                      modelInfo.model[relationship.through]);
+                  if (model[relationship.through][0].toString() != res.body[relationship.through]) {
+                    throw new Error("Relationship update failed for %s %s ",
+                      modelName, model[relationship.through]);
                   }
                 } else if (relationship.type === 'belongsTo') {
                   var index = testModels[relationship.model].length - 1;
-                  if (modelInfo.model[relationship.through].toString() != res.body[relationship.through].toString()) {
-                    throw new Error("Relationship update failed for " + modelName + " " +
-                      modelInfo.model[relationship.through]);
+                  if (model[relationship.through].toString() != res.body[relationship.through].toString()) {
+                    throw new Error("Relationship update failed for %s %s ",
+                      modelName, model[relationship.through]);
                   }
-                  //  console.log('Compare belongs to ' + modelInfo.model[relationship.through].toString() + ' EQUALS '+
-                  //res.body[relationship.through].toString());
-
                 }
               });
             }
@@ -172,23 +156,19 @@ describe('GET - check model relationships', function() {
   Object.keys(testModels).forEach(function(e, i, a) {
     Object.keys(testModels[e]).forEach(function(ee, ii, aa) {
       var modelName = e;
+      var model = testModels[e][ee];
 
-      var modelInfo = {
-        name: e,
-        model: testModels[e][ee],
-        url: "/" + inflection.pluralize(e.toLowerCase()) + '/' + testModels[e][ee]._id
-      }
+
       if (testModelRelationships[modelName]) {
         testModelRelationships[modelName].forEach(function(a, b, c) {
-          var model = testModels[e][ee];
           var relationship = a;
+          var relatedModel = testModels[relationship.model][ii];
           var url = '/' + inflection.pluralize(relationship.model.toLowerCase()) + '/';
 
           if (relationship.type === 'hasMany') {
-            //modelInfo.model[relationship.through] = [testModels[relationship.model][0]._id];
-            it('It should verify ' + modelName + ' with Id ' + testModels[e][ee]._id +
-              'has  ' + relationship.model + ' with Id ' + testModels[relationship.model][0]._id +
-              ' via hasMany through ' + relationship.relationMember,
+             it(util.format("It should verify %s with Id %s has %s with Id %s via hasMany through %s",
+                modelName, model._id, relationship.model, testModels[relationship.model][ii]._id,
+                relationship.relationMember),
               function(done) {
                 url += testModels[relationship.model][ii]._id;
 
@@ -199,9 +179,11 @@ describe('GET - check model relationships', function() {
                   .expect(function(res) {
 
                     if (res.body[relationship.relationMember]._id.toString() !== model._id.toString()) {
-                      throw new Error('FAILED ' + modelName + ' with Id ' + testModels[e][ee]._id +
-                        'has  ' + relationship.model + ' with Id ' + testModels[relationship.model][0]._id +
-                        ' via hasMany through ' + relationship.relationMember)
+                      throw new Error( util.format( "Model %s with Id %s does not have "+
+                                      "hasMany relationship with %s through %s ",
+                                      modelName, model._id, relation.model,
+                                      relatedModel._id, relationship.relationMember)
+                                    );
                     }
                   })
                   .expect(200, done);
@@ -210,7 +192,6 @@ describe('GET - check model relationships', function() {
 
 
           } else if (relationship.type === 'hasAndBelongsToMany') {
-            //modelInfo.model[relationship.through] = [testModels[relationship.model][1]._id];
             it('It should verify ' + modelName + 'with Id ' + testModels[e][ee]._id +
               ' belongs to  ' + relationship.model + ' with Id ' + testModels[relationship.model][1]._id +
               ' via hasAndBelongsToMany through ' + relationship.relationMember,
@@ -223,9 +204,11 @@ describe('GET - check model relationships', function() {
                   .expect(function(res) {
 
                     if (res.body[relationship.relationMember][0]._id.toString() !== model._id.toString()) {
-                      throw new Error('FAILED ' + modelName + 'with Id ' + testModels[e][ee]._id +
-                        ' belongs to  ' + relationship.model + ' with Id ' + testModels[relationship.model][1]._id +
-                        ' via hasAndBelongsToMany through ' + relationship.relationMember)
+                      throw new Error( util.format( "Model %s with Id %s does not have "+
+                      "hasAndBelongsToMany relationship with %s through %s",
+                      modelName, model._id, relation.model, relatedModel._id,
+                      relationship.relationMember)
+                    );
                     }
                   })
                   .expect(200, done);
@@ -246,9 +229,11 @@ describe('GET - check model relationships', function() {
                   .expect('Content-Type', /json/)
                   .expect(function(res) {
                     if (res.body[relationship.relationMember][0]._id.toString() !== model._id.toString()) {
-                      new Error('FAILED ' + modelName + 'with Id ' + testModels[e][ee]._id +
-                        'belongs to  ' + relationship.model + ' with Id ' + testModels[relationship.model][index]._id +
-                        ' through ' + relationship.relationMember);
+                      throw new Error( util.format( "Model %s with Id %s does not have "+
+                      "belongsTo relationship with %s through %s",
+                      modelName, model._id, relation.model, relatedModel._id,
+                      relationship.relationMember)
+                    );
                     }
                   })
                   .expect(200, done);

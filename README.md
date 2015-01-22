@@ -99,7 +99,6 @@ format shown below:
         model: Person
         through: _creator
         relationMember: stories
-        onDelete: delete
 ```
 
 
@@ -115,7 +114,12 @@ Will generate
   1. the the model files mentioned above
   2. add the require and use statements to app.js
   3. create the route js scripts for RESTful CRUD
+  4. test.js to validate CRUD
 
+## Testing
+
+Test script can be run via mocha; the test script validate the create, update, delete
+and listing functionality of the backend api
 
 ## Contributing
 
